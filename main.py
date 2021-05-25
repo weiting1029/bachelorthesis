@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-
 # simulation setting
 # n = 100
 # p = 50
@@ -111,11 +110,14 @@ alpha = 0.05
 theta_candidate = np.linspace(0, 0.05, 20)
 
 test_power_desf = func.test_power_simulation_desf(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
-test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
+# test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
 
-plt.plot(theta_candidate, test_power_desf / KK)
-plt.plot(theta_candidate, test_power_ldpe / KK)
+plt.plot(theta_candidate, test_power_desf, label='DeSF')
+# plt.plot(theta_candidate, test_power_ldpe / KK)
 plt.ylabel('Testing Power')
 plt.xlabel('theta')
+plt.legend()
+plt.title(' n  = 100, p = 50 ')
+plt.show()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
