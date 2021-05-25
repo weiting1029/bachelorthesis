@@ -227,8 +227,50 @@ def find_KK(seed, alpha, can_KK, mu, sigma, mean1, Sigma, n):
 def rates_type_one(data, KK):
     rej_rate = 0
     for i in range(KK):
+        # data[i]
         p_value = 1 - 2 * (1 - stats.norm.cdf(abs(data[i])))
         if p_value <= 0.90:  # when accepting
             rej_rate += 1
     #     print("the rate of rejection is {:g}".format(1-rej_rate/KK))
     return 1 - rej_rate / KK
+
+
+def av_rates_desf(seed, KK, alpha, n, p, s, rho):
+    rej_rate = 0
+    Sigma2 = np.zeros([p, p])
+    # rho = 0.6
+    for i in range(p):
+        for j in range(p):
+            Sigma2[i, j] = rho ** abs(i - j)
+    # np.fill_diagonal(Sigma1, 1)
+    mean1 = np.zeros(p)
+    mu, sigma = 0, 0.1
+    beta = np.zeros(p)
+    beta[1:s+1] = 1
+    beta[0] = 0
+    cv_lambda = 0
+    for i in range(50):
+        np.random.seed(seed+i)
+        ERR = normal(mu, sigma, n)
+        Q = multivariate_normal(mean=mean1, cov=Sigma2, size=n)
+        Y = ERR + Q @ beta
+        reg_desf = LassoCV(cv=5, random_state=0).fit(Q, Y)
+        est_beta = reg_desf.coef_
+        cv_lambda += reg_desf.alpha_
+        uscore_i = u_score_function(est_beta, Y, Q, sigma)
+        p_value = 1 - stats.norm.cdf(abs(uscore_i))
+        if p_value <= alpha / 2:
+            rej_rate += 1
+    for i in range(50, KK):
+        np.random.seed(seed + i)
+        ERR = normal(mu, sigma, n)
+        Q = multivariate_normal(mean=mean1, cov=Sigma2, size=n)
+        Y = ERR + Q @ beta
+        reg_desf = Lasso(alpha).fit(Q, Y)
+        est_beta = reg_desf.coef_
+        # cv_lambda += reg_desf.alpha_
+        uscore_i = u_score_function(est_beta, Y, Q, sigma)
+        p_value = 1 - stats.norm.cdf(abs(uscore_i))
+        if p_value <= alpha / 2:
+            rej_rate += 1
+    return rej_rate/KK
