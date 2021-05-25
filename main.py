@@ -69,13 +69,13 @@ import pandas as pd
 
 # Press the green button in the gutter to run the script.
 # if __name__ == '__main__':
-# sns.set_style('darkgrid')
-# plt.rc('axes', titlesize=18)
-# plt.rc('axes', labelsize=14)
-# plt.rc('xtick', labelsize=13)
-# plt.rc('ytick', labelsize=13)
-# plt.rc('legend', fontsize=13)
-# plt.rc('font', size=13)
+sns.set_style('darkgrid')
+plt.rc('axes', titlesize=18)
+plt.rc('axes', labelsize=14)
+plt.rc('xtick', labelsize=13)
+plt.rc('ytick', labelsize=13)
+plt.rc('legend', fontsize=13)
+plt.rc('font', size=13)
 # main()
 
 
@@ -112,6 +112,14 @@ theta_candidate = np.linspace(0, 0.05, 20)
 test_power_desf = func.test_power_simulation_desf(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
 # test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
 
+sns.set_style('darkgrid')
+plt.rc('axes', titlesize=18)
+plt.rc('axes', labelsize=14)
+plt.rc('xtick', labelsize=13)
+plt.rc('ytick', labelsize=13)
+plt.rc('legend', fontsize=13)
+plt.rc('font', size=13)
+
 plt.plot(theta_candidate, test_power_desf, label='DeSF')
 # plt.plot(theta_candidate, test_power_ldpe / KK)
 plt.ylabel('Testing Power')
@@ -119,5 +127,9 @@ plt.xlabel('theta')
 plt.legend()
 plt.title(' n  = 100, p = 50 ')
 plt.show()
+
+
+
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

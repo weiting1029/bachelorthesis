@@ -156,7 +156,29 @@ def LDPE_statistics(est_beta, Y, Q, sigma):
 def test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma, n):
     #     beta[0]=0
     rej_list = np.zeros(len(theta_candidate))
-    for i in range(KK):
+    lambda_list = np.zeros(len(theta_candidate))
+    for i in range(50):
+        np.random.seed(seed + i)
+        ERR_temp = normal(mu, sigma, n)
+        #         print(random.random())
+        Q_temp = multivariate_normal(mean=mean1, cov=Sigma, size=n)
+        p = len(mean1)
+        hyp_beta = np.zeros(p)
+        hyp_beta[1:3] = 1
+        for j in range(len(theta_candidate)):
+            hyp_beta[0] = theta_candidate[j]
+            Y_temp = ERR_temp + Q_temp @ hyp_beta
+            reg_temp = LassoCV(cv=5, random_state=0).fit(Q_temp, Y_temp)
+            temp_beta = reg_temp.coef_
+            lambda_list[j] = lambda_list[j] + reg_temp.alpha_
+            #             print(temp_beta[0])
+            u_score = LDPE_statistics(temp_beta, Y_temp, Q_temp, sigma)
+            p_value = 1 - 2 * (1 - stats.norm.cdf(abs(u_score)))
+            if p_value > 1 - alpha:
+                rej_list[j] += 1
+    lambda_list = lambda_list / 50
+
+    for i in range(50, KK):
         np.random.seed(seed + i)
         ERR_temp = normal(mu, sigma, n)
         #         print(random.random())
@@ -167,7 +189,7 @@ def test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean
         for j in range(len(theta_candidate)):
             hyp_beta[0] = theta_candidate[j]
             Y_temp = ERR_temp + Q_temp @ hyp_beta
-            reg_temp = LassoCV(cv=5, random_state=0).fit(Q_temp, Y_temp)
+            reg_temp = Lasso(alpha=lambda_list[j]).fit(Q_temp, Y_temp)
             temp_beta = reg_temp.coef_
             #             print(temp_beta[0])
             u_score = LDPE_statistics(temp_beta, Y_temp, Q_temp, sigma)
