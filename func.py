@@ -182,7 +182,7 @@ def test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean
         np.random.seed(seed + i)
         ERR_temp = normal(mu, sigma, n)
         #         print(random.random())
-        Q_temp = multivariate_normal(mean=mean1, cov=Sigma2, size=n)
+        Q_temp = multivariate_normal(mean=mean1, cov=Sigma, size=n)
         p = len(mean1)
         hyp_beta = np.zeros(p)
         hyp_beta[1:3] = 1
@@ -196,7 +196,7 @@ def test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean
             p_value = 1 - 2 * (1 - stats.norm.cdf(abs(u_score)))
             if p_value > 1 - alpha:
                 rej_list[j] += 1
-    return rej_list
+    return rej_list/KK
 
 
 def find_KK(seed, alpha, can_KK, mu, sigma, mean1, Sigma, n):
