@@ -13,7 +13,8 @@ from matplotlib import pyplot
 import warnings
 import random
 import func
-
+import time
+import openpyxl
 warnings.filterwarnings("ignore")
 # warnings.simplefilter("default")
 from numpy import linalg as LA
@@ -109,7 +110,10 @@ KK = 150
 alpha = 0.05
 theta_candidate = np.linspace(0, 0.05, 20)
 
+start = time.time()
 test_power_desf = func.test_power_simulation_desf(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
+end = time.time()
+print(end-start)
 # test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
 
 sns.set_style('darkgrid')
