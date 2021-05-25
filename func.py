@@ -196,7 +196,7 @@ def test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean
             p_value = 1 - 2 * (1 - stats.norm.cdf(abs(u_score)))
             if p_value > 1 - alpha:
                 rej_list[j] += 1
-    return rej_list/KK
+    return rej_list / KK
 
 
 def find_KK(seed, alpha, can_KK, mu, sigma, mean1, Sigma, n):
@@ -222,3 +222,13 @@ def find_KK(seed, alpha, can_KK, mu, sigma, mean1, Sigma, n):
         rej_list[i] = rej_list[i] / KK
 
     return rej_list
+
+
+def rates_type_one(data, KK):
+    rej_rate = 0
+    for i in range(KK):
+        p_value = 1 - 2 * (1 - stats.norm.cdf(abs(data[i])))
+        if p_value <= 0.90:  # when accepting
+            rej_rate += 1
+    #     print("the rate of rejection is {:g}".format(1-rej_rate/KK))
+    return 1 - rej_rate / KK
