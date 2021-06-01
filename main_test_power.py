@@ -82,7 +82,7 @@ plt.rc('font', size=13)
 
 
 n = 100
-p = 100
+p = 150
 
 Sigma1 = 0.8 * np.ones([p, p])
 Sigma2 = np.zeros([p, p])
@@ -107,17 +107,19 @@ beta[0] = 0
 # DGP1
 # Y = ERR + Q @ beta
 seed = 10
-KK = 150
+KK = 250
 alpha = 0.05
 theta_candidate = np.linspace(0, 0.05, 20)
 
 start = time.time()
-test_power_desf = func.test_power_simulation_desf(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
+test_power_desf = func.test_power_simulation_ldpe_graphical(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2,
+                                                            n)
 end = time.time()
 print(end - start)
 df = pd.DataFrame(test_power_desf, columns=['DeSF'])
-df.to_excel("test_power_p100.xlsx")
-test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
+df.to_excel("test_power_p150_gldpe.xlsx")
+# test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
+
 
 sns.set_style('darkgrid')
 plt.rc('axes', titlesize=18)
@@ -128,7 +130,7 @@ plt.rc('legend', fontsize=13)
 plt.rc('font', size=13)
 
 plt.plot(theta_candidate, test_power_desf, label='DeSF')
-plt.plot(theta_candidate, test_power_ldpe, label ='LDPE')
+# plt.plot(theta_candidate, test_power_ldpe, label='LDPE')
 plt.plot(theta_candidate, alpha * np.ones(len(theta_candidate)), 'r--', label='alpha = 0.05')
 plt.ylabel('Test Power (Rejection Rates)')
 plt.xlabel('theta')
@@ -136,4 +138,3 @@ plt.legend()
 plt.title(' n  = 100, p = 50 ')
 plt.savefig('test_power_p50')
 plt.show()
-

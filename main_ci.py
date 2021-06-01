@@ -14,6 +14,7 @@ import warnings
 import random
 import func
 import time
+import multiprocessing as mp
 import openpyxl
 
 warnings.filterwarnings("ignore")
@@ -71,13 +72,13 @@ import pandas as pd
 
 # Press the green button in the gutter to run the script.
 # if __name__ == '__main__':
-sns.set_style('darkgrid')
-plt.rc('axes', titlesize=18)
-plt.rc('axes', labelsize=14)
-plt.rc('xtick', labelsize=13)
-plt.rc('ytick', labelsize=13)
-plt.rc('legend', fontsize=13)
-plt.rc('font', size=13)
+# sns.set_style('darkgrid')
+# plt.rc('axes', titlesize=18)
+# plt.rc('axes', labelsize=14)
+# plt.rc('xtick', labelsize=13)
+# plt.rc('ytick', labelsize=13)
+# plt.rc('legend', fontsize=13)
+# plt.rc('font', size=13)
 # main()
 
 
@@ -105,11 +106,11 @@ plt.rc('font', size=13)
 # Y = ERR + Q @ beta
 
 # Some global variables
-seed = 10
-KK = 150
-alpha = 0.05
-
-n = 100
+# seed = 10
+# KK = 150
+# alpha = 0.05
+#
+# n = 100
 # p = 50
 # av_rates_p50_s2 = func.av_rates_desf(seed, 150, alpha, n, 50, s=2, rho=0.6)
 # av_rates_p100_s2 = func.av_rates_desf(seed, 150, alpha, n, 100, s=2, rho=0.6)
@@ -120,22 +121,115 @@ n = 100
 # av_rates_p150_s3 = func.av_rates_desf(seed, 250, alpha, n, 150, s=3, rho=0.6)
 
 # p = 50
+# can_rho = np.array([0.25, 0.4, 0.6, 0.75])
+# can_s = np.array([2, 5, 10])
+# rate_table_p50 = np.zeros(len(can_s))
+# rate_table_p100 = np.zeros(len(can_s))
+# rate_table_p150 = np.zeros(len(can_s))
+
+
+# test = func.av_rates_desf(seed, 150, alpha, n, 50, s=2, rho=0.6)
+# print(test)
+# for i in range(len(can_s)):
+#     for j in range(len(can_rho)):
+#         start = time.time()
+#         rate_table_p50[i, j] = func.av_rates_desf(seed, 250, alpha, n, 50, s=can_s[i], rho=can_rho[j])
+#         end = time.time()
+#         print('the running time is:' + str(end - start) + 's')
+#         rate_table_p100[i, j] = func.av_rates_desf(seed, 250, alpha, n, 100, s=can_s[i], rho=can_rho[j])
+#         rate_table_p150[i, j] = func.av_rates_desf(seed, 250, alpha, n, 150, s=can_s[i], rho=can_rho[j])
+#
+# #
+# #
+
 can_rho = np.array([0.25, 0.4, 0.6, 0.75])
-can_s = np.arange(9) + 2
+can_s = np.array([2, 5, 10])
 rate_table_p50 = np.zeros([len(can_s), len(can_rho)])
 rate_table_p100 = np.zeros([len(can_s), len(can_rho)])
 rate_table_p150 = np.zeros([len(can_s), len(can_rho)])
 
-for i in range(len(can_s)):
-    for j in range(len(can_rho)):
-        rate_table_p50[i, j] = func.av_rates_desf(seed, 150, alpha, n, 50, s=can_s[i], rho=can_rho[j])
-        rate_table_p100[i, j] = func.av_rates_desf(seed, 150, alpha, n, 100, s=can_s[i], rho=can_rho[j])
-        rate_table_p150[i, j] = func.av_rates_desf(seed, 150, alpha, n, 150, s=can_s[i], rho=can_rho[j])
+
+def main():
+    n = 100
+    p = 50
+
+    Sigma1 = 0.8 * np.ones([p, p])
+    Sigma2 = np.zeros([p, p])
+    rho = 0.6
+    s = 2
+    for i in range(p):
+        for j in range(p):
+            Sigma2[i, j] = rho ** abs(i - j)
+
+    np.fill_diagonal(Sigma1, 1)
+    mean1 = np.zeros(p)
+    random.seed(10)
+    Q = multivariate_normal(mean=mean1, cov=Sigma2, size=n)
+
+    mu, sigma = 0, 0.1
+    ERR = normal(mu, sigma, n)
+
+    # set the true parameter
+    beta = np.zeros(p)
+    beta[1:3] = 1
+    beta[0] = 0
+
+    # DGP1
+    Y = ERR + Q @ beta
+    KK = 20
+    alpha = 0.05
+    seed = 10
+    reg_desf = LassoCV(cv=5, random_state=0).fit(Q, Y)
+    est_beta = reg_desf.coef_
+    # lambda_desf = reg_desf.alpha_
+    # test = func.u_score_CI(est_beta, Y, Q, alpha, sigma)
+    # av_ci = func.av_ci_desf(seed, KK, alpha, n, p, s, rho)
+    # return av_ci
+    #
+    # can_rho = np.array([0.25, 0.4, 0.6, 0.75])
+    # can_s = np.array([2, 5, 10])
+    # rate_table_p50 = np.zeros(len(can_s))
+    # rate_table_p100 = np.zeros(len(can_s))
+    # rate_table_p150 = np.zeros(len(can_s))
+
+    for i in range(len(can_s)):
+        for j in range(len(can_rho)):
+            start = time.time()
+            rate_table_p50[i, j] = func.av_ci_desf(seed, KK, alpha, n, 50, can_s[i], can_rho[j])
+            end = time.time()
+            print('the time we need is: ' + str(end - start) + 's')
+            rate_table_p100[i, j] = func.av_ci_desf(seed, KK, alpha, n, 100, can_s[i], can_rho[j])
+            rate_table_p150[i, j] = func.av_ci_desf(seed, KK, alpha, n, 150, can_s[i], can_rho[j])
 
 
+# theta_candidate = np.linspace(0, 0.05, 20)
+
+
+# pool = mp.Pool(4)
+# can_s = np.array([2, 5, 10])
+# s_rate_table_p50 = np.zeros(len(can_s))
+# s_rate_table_p100 = np.zeros(len(can_s))
+# s_rate_table_p150 = np.zeros(len(can_s))
+# for i in range(len(can_s)):
+#     s_rate_table_p50[i] = func.av_rates_ldpe(seed, 100, alpha, n, 50, can_s[i], 0.6, pool)
+#     s_rate_table_p100[i] = func.av_rates_ldpe(seed, 100, alpha, n, 100, can_s[i], 0.6, pool)
+#     s_rate_table_p150[i] = func.av_rates_ldpe(seed, 100, alpha, n, 150, can_s[i], 0.6, pool)
+# pool.close()
+# pool.join()
+
+# can_s = np.array([2, 3])
+# s_rate_table_p50 = np.zeros(len(can_s))
+# s_rate_table_p100 = np.zeros(len(can_s))
+# s_rate_table_p150 = np.zeros(len(can_s))
+# for i in range(len(can_s)):
+# s_rate_table_p50[i] = func.av_rates_ldpe(seed, 100, alpha, n, 50, can_s[i], 0.6, pool)
+# s_rate_table_p100[i] = func.av_rates_ldpe(seed, 100, alpha, n, 100, can_s[i], 0.6, pool)
+# s_rate_table_p150[i] = func.av_rates_ldpe(seed, 100, alpha, n, 150, can_s[i], 0.6, pool)
 #
 
 
+if __name__ == '__main__':
+    main()
 
 # df = pd.DataFrame(np.array([[av_rates_p50_s2, av_rates_p150_s2, av_rates_p150_s2],
 #                             [av_rates_p50_s3, av_rates_p100_s3, av_rates_p150_s3]]),
@@ -174,13 +268,13 @@ for i in range(len(can_s)):
 # df.to_excel("test_power_p150.xlsx")
 # test_power_ldpe = func.test_power_simulation_ldpe(seed, KK, alpha, theta_candidate, mu, sigma, mean1, Sigma2, n)
 
-sns.set_style('darkgrid')
-plt.rc('axes', titlesize=18)
-plt.rc('axes', labelsize=14)
-plt.rc('xtick', labelsize=13)
-plt.rc('ytick', labelsize=13)
-plt.rc('legend', fontsize=13)
-plt.rc('font', size=13)
+# sns.set_style('darkgrid')
+# plt.rc('axes', titlesize=18)
+# plt.rc('axes', labelsize=14)
+# plt.rc('xtick', labelsize=13)
+# plt.rc('ytick', labelsize=13)
+# plt.rc('legend', fontsize=13)
+# plt.rc('font', size=13)
 
 # plt.plot(theta_candidate, test_power_desf, label='DeSF')
 # plt.plot(theta_candidate, test_power_ldpe)
